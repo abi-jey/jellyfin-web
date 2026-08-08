@@ -750,6 +750,7 @@
     "LabelChapterImageResolutionHelp": "The resolution of the extracted chapter images. Changing this will have no effect on existing dummy chapters.",
     "LabelDynamicExternalId": "{0} Id",
     "LabelAdminGroups": "Admin groups",
+    "LabelAdminGroupsHelp": "Members of these groups are granted administrator rights (at provisioning, or on every login when sync is enabled).",
     "LabelAllowInsecureAuthority": "Allow insecure (HTTP) authority",
     "LabelAuthority": "Authority (issuer URL)",
     "LabelAuthorityHelp": "The base URL of the identity provider, e.g. https://auth.example.com. Must be HTTPS unless insecure authority is allowed.",

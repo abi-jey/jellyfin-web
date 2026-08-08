@@ -28,7 +28,7 @@ interface OidcProviderConfiguration {
     EmailClaim: string
     RequiredGroups: string[]
     AdminGroups: string[]
-    ProvisioningMode: number
+    ProvisioningMode: 'Disabled' | 'CreateUser'
     SyncAdminRole: boolean
     GetClaimsFromUserInfoEndpoint: boolean
     HasClientSecret?: boolean
@@ -50,7 +50,7 @@ const DEFAULT_PROVIDER: OidcProviderConfiguration = {
     EmailClaim: 'email',
     RequiredGroups: [],
     AdminGroups: [],
-    ProvisioningMode: 0,
+    ProvisioningMode: 'Disabled',
     SyncAdminRole: false,
     GetClaimsFromUserInfoEndpoint: true
 };
@@ -194,12 +194,12 @@ const OidcProviderCard: FC<ProviderCardProps> = ({ index, provider, onDelete }) 
                 name={`${index}.ProvisioningMode`}
                 label={globalize.translate('LabelProvisioningMode')}
                 select
-                defaultValue={provider.ProvisioningMode ?? 0}
+                defaultValue={provider.ProvisioningMode ?? 'Disabled'}
             >
-                <MenuItem value={0}>
+                <MenuItem value='Disabled'>
                     {globalize.translate('OptionOidcProvisioningLinkOnly')}
                 </MenuItem>
-                <MenuItem value={1}>
+                <MenuItem value='CreateUser'>
                     {globalize.translate('OptionOidcProvisioningCreateUser')}
                 </MenuItem>
             </TextField>
@@ -300,7 +300,9 @@ export const Component = () => {
             EmailClaim: data.get(`${index}.EmailClaim`)?.toString() ?? '',
             RequiredGroups: splitList(data.get(`${index}.RequiredGroups`)),
             AdminGroups: splitList(data.get(`${index}.AdminGroups`)),
-            ProvisioningMode: parseInt(data.get(`${index}.ProvisioningMode`)?.toString() ?? '0', 10),
+            ProvisioningMode: data.get(`${index}.ProvisioningMode`)?.toString() === 'CreateUser' ?
+                'CreateUser' :
+                'Disabled',
             SyncAdminRole: data.get(`${index}.SyncAdminRole`) === 'on',
             GetClaimsFromUserInfoEndpoint: data.get(`${index}.GetClaimsFromUserInfoEndpoint`) === 'on'
         }));
