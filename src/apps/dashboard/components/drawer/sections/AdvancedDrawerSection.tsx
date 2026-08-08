@@ -1,6 +1,7 @@
 import Article from '@mui/icons-material/Article';
 import Backup from '@mui/icons-material/Backup';
 import Lan from '@mui/icons-material/Lan';
+import Login from '@mui/icons-material/Login';
 import Schedule from '@mui/icons-material/Schedule';
 import VpnKey from '@mui/icons-material/VpnKey';
 import List from '@mui/material/List';
@@ -29,6 +30,14 @@ const AdvancedDrawerSection = () => {
                         <Lan />
                     </ListItemIcon>
                     <ListItemText primary={globalize.translate('TabNetworking')} />
+                </ListItemLink>
+            </ListItem>
+            <ListItem disablePadding>
+                <ListItemLink to='/dashboard/oidc'>
+                    <ListItemIcon>
+                        <Login />
+                    </ListItemIcon>
+                    <ListItemText primary={globalize.translate('HeaderOpenIdConnect')} />
                 </ListItemLink>
             </ListItem>
             <ListItem disablePadding>

@@ -30,6 +30,81 @@ domPurify.setConfig({
 
 const enableFocusTransform = !browser.slow && !browser.edge;
 
+const oidcProviderStorageKey = 'jf-oidc-provider';
+
+function getOidcReturnParams() {
+    const search = new URLSearchParams(window.location.search);
+
+    return {
+        code: search.get('oidc_code'),
+        error: search.get('oidc_error')
+    };
+}
+
+function clearOidcReturnParams() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('oidc_code');
+    url.searchParams.delete('oidc_error');
+    window.history.replaceState(null, '', url);
+}
+
+function authenticateWithOidc(page, apiClient, url, providerId, code) {
+    loading.show();
+    apiClient.ajax({
+        type: 'POST',
+        url: apiClient.getUrl(`auth/oidc/${encodeURIComponent(providerId)}/exchange`),
+        data: JSON.stringify({ Code: code }),
+        contentType: 'application/json',
+        dataType: 'json'
+    }).then(function (result) {
+        loading.hide();
+
+        onLoginSuccessful(result.User.Id, result.AccessToken, apiClient, url);
+    }).catch(function (err) {
+        loading.hide();
+        toast(globalize.translate('MessageOidcLoginFailed'));
+        console.error('OIDC code exchange error', err);
+    });
+}
+
+function startOidcLogin(apiClient, provider) {
+    sessionStorage.setItem(oidcProviderStorageKey, provider.ProviderId);
+
+    window.location.href = apiClient.getUrl(`auth/oidc/${encodeURIComponent(provider.ProviderId)}/start`, {
+        app: apiClient.appName(),
+        appVersion: apiClient.appVersion(),
+        deviceId: apiClient.deviceId(),
+        deviceName: apiClient.deviceName(),
+        returnUrl: window.location.pathname
+    });
+}
+
+function loadOidcProviders(context, apiClient) {
+    apiClient.getJSON(apiClient.getUrl('auth/oidc/providers')).then(function (providers) {
+        const container = context.querySelector('.oidcProviders');
+        container.innerHTML = '';
+
+        for (const provider of providers || []) {
+            const button = document.createElement('button');
+            button.setAttribute('is', 'emby-button');
+            button.type = 'button';
+            button.className = 'raised cancel block btnOidc';
+
+            const span = document.createElement('span');
+            span.textContent = globalize.translate('ButtonSignInWithProvider', provider.Name);
+            button.appendChild(span);
+
+            button.addEventListener('click', function () {
+                startOidcLogin(apiClient, provider);
+            });
+
+            container.appendChild(button);
+        }
+    }).catch(function (err) {
+        console.debug('Failed to get OIDC providers', err);
+    });
+}
+
 function authenticateUserByName(page, apiClient, url, username, password) {
     loading.show();
     apiClient.authenticateUserByName(username, password).then(function (result) {
@@ -277,6 +352,23 @@ export default function (view, params) {
         }
 
         const apiClient = getApiClient();
+
+        const oidcReturn = getOidcReturnParams();
+        if (oidcReturn.code || oidcReturn.error) {
+            clearOidcReturnParams();
+
+            const providerId = sessionStorage.getItem(oidcProviderStorageKey);
+            sessionStorage.removeItem(oidcProviderStorageKey);
+
+            if (oidcReturn.code && providerId) {
+                authenticateWithOidc(view, apiClient, getTargetUrl(), providerId, oidcReturn.code);
+                return;
+            }
+
+            toast(globalize.translate('MessageOidcLoginFailed'));
+        }
+
+        loadOidcProviders(view, apiClient);
 
         apiClient.getQuickConnect('Enabled')
             .then(enabled => {
