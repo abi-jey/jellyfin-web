@@ -9,6 +9,7 @@ import Page from 'components/Page';
 import { AppFeature } from 'constants/appFeature';
 import LinkButton from 'elements/emby-button/LinkButton';
 import { useApi } from 'hooks/useApi';
+import { useOidcProviders } from 'hooks/useOidcProviders';
 import { useQuickConnectEnabled } from 'hooks/useQuickConnect';
 import { useUsers } from 'hooks/useUsers';
 import globalize from 'lib/globalize';
@@ -24,6 +25,7 @@ const UserSettingsPage: FC = () => {
         data: isQuickConnectEnabled,
         isPending: isQuickConnectEnabledPending
     } = useQuickConnectEnabled();
+    const { data: oidcProviders } = useOidcProviders();
     const { data: users } = useUsers();
     const [ user, setUser ] = useState<UserDto>();
 
@@ -108,6 +110,27 @@ const UserSettingsPage: FC = () => {
                                     <div className='listItemBody'>
                                         <div className='listItemBodyText'>
                                             {globalize.translate('QuickConnect')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </LinkButton>
+                        )}
+
+                        {isLoggedInUser && !!oidcProviders?.length && (
+                            <LinkButton
+                                href={`#/mypreferencesso?userId=${userId}`}
+                                className='lnkOidcPreferences listItem-border'
+                                style={{
+                                    display: 'block',
+                                    margin: 0,
+                                    padding: 0
+                                }}
+                            >
+                                <div className='listItem'>
+                                    <span className='material-icons listItemIcon listItemIcon-transparent link' aria-hidden='true' />
+                                    <div className='listItemBody'>
+                                        <div className='listItemBodyText'>
+                                            {globalize.translate('HeaderLinkedAccounts')}
                                         </div>
                                     </div>
                                 </div>
